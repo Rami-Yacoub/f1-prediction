@@ -191,6 +191,12 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # =============================================================================
 with tab1:
     st.header("🏆 Prédiction du Podium")
+    st.markdown("""
+    Ce modèle utilise **Ridge Regression + Plackett-Luce** pour calculer les probabilités de victoire.
+    
+    1. **Ridge** calcule un score de "force" (θ) pour chaque pilote
+    2. **Plackett-Luce** convertit ces scores en probabilités de victoire
+    """)
     
     # Sélection du Grand Prix
     upcoming_races = [r for r in F1_CALENDAR_2025 if not r["completed"]]
@@ -199,7 +205,7 @@ with tab1:
         race_options = [f"{r['name']} - {r['circuit']}" for r in upcoming_races]
     else:
         race_options = [f"{r['name']} - {r['circuit']}" for r in F1_CALENDAR_2025]
-        st.info("Toutes les courses sont terminées. Sélectionnez une course passée pour simuler.")
+        st.info("Toutes les courses sont terminées. Sélectionnez une course pour simuler.")
     
     selected_race_full = st.selectbox("🏁 Sélectionnez un Grand Prix", race_options)
     selected_race_name = selected_race_full.split(" - ")[0]
@@ -215,175 +221,306 @@ with tab1:
     
     st.markdown("---")
     
-    # Paramètres
-    st.subheader("⚙️ Paramètres")
+    # Paramètres globaux
+    st.subheader("⚙️ Paramètres de Course")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        year = st.number_input("Année", value=2025, min_value=2015, max_value=2030)
+        laps = st.number_input("Nombre de tours", value=race_info["laps"] if race_info else 55, min_value=1)
     with col2:
-        laps = st.number_input("Tours", value=race_info["laps"] if race_info else 55, min_value=1)
+        avg_pit_duration = st.slider("Durée pit stop (s)", 20.0, 35.0, 25.0)
     with col3:
-        avg_pit_duration = st.slider("Pit stop (s)", 20.0, 35.0, 25.0)
-    with col4:
-        pit_stops = st.number_input("Arrêts", value=2, min_value=0, max_value=5)
+        pit_stops = st.number_input("Arrêts aux stands", value=2, min_value=0, max_value=5)
     
     st.markdown("---")
     
-    # Configuration grille
-    with st.expander("🔧 Configurer les positions de grille", expanded=False):
-        driver_grid = {}
+    # Configuration par pilote
+    st.subheader("🏎️ Configuration des Pilotes")
+    
+    # Valeurs par défaut basées sur la performance relative
+    default_configs = {
+        "Max Verstappen": {"grid": 1, "q_delta": 0.0},
+        "Charles Leclerc": {"grid": 2, "q_delta": 0.15},
+        "Lando Norris": {"grid": 3, "q_delta": 0.20},
+        "Oscar Piastri": {"grid": 4, "q_delta": 0.25},
+        "Lewis Hamilton": {"grid": 5, "q_delta": 0.30},
+        "Carlos Sainz": {"grid": 6, "q_delta": 0.35},
+        "George Russell": {"grid": 7, "q_delta": 0.40},
+        "Fernando Alonso": {"grid": 8, "q_delta": 0.50},
+        "Yuki Tsunoda": {"grid": 9, "q_delta": 0.60},
+        "Lance Stroll": {"grid": 10, "q_delta": 0.65},
+        "Pierre Gasly": {"grid": 11, "q_delta": 0.70},
+        "Esteban Ocon": {"grid": 12, "q_delta": 0.75},
+        "Alex Albon": {"grid": 13, "q_delta": 0.80},
+        "Nico Hulkenberg": {"grid": 14, "q_delta": 0.85},
+        "Liam Lawson": {"grid": 15, "q_delta": 0.90},
+        "Franco Colapinto": {"grid": 16, "q_delta": 0.95},
+        "Kimi Antonelli": {"grid": 17, "q_delta": 1.00},
+        "Oliver Bearman": {"grid": 18, "q_delta": 1.05},
+        "Isack Hadjar": {"grid": 19, "q_delta": 1.10},
+        "Gabriel Bortoleto": {"grid": 20, "q_delta": 1.15},
+    }
+    
+    with st.expander("🔧 Modifier les positions de grille et temps de qualification", expanded=False):
+        st.markdown("""
+        **Position Grille** : Position de départ (1 = pole position)
+        
+        **Delta Q (secondes)** : Écart par rapport à la pole en qualification
+        - 0.0 = Temps de la pole
+        - 0.5 = 0.5 secondes plus lent que la pole
+        """)
+        
+        driver_configs = {}
+        
         cols = st.columns(4)
         
         for idx, driver in enumerate(GRID_2025):
+            name = driver["name"]
+            defaults = default_configs.get(name, {"grid": idx + 1, "q_delta": 1.0})
+            
             with cols[idx % 4]:
-                driver_grid[driver["name"]] = st.number_input(
-                    f"{driver['name']}",
+                st.markdown(f"**{name}**")
+                
+                grid = st.number_input(
+                    "Grille",
                     min_value=1,
                     max_value=20,
-                    value=idx + 1,
-                    key=f"grid_{driver['name']}"
+                    value=defaults["grid"],
+                    key=f"grid_{name}"
                 )
+                
+                q_delta = st.number_input(
+                    "Delta Q (s)",
+                    min_value=0.0,
+                    max_value=5.0,
+                    value=defaults["q_delta"],
+                    step=0.05,
+                    key=f"qdelta_{name}"
+                )
+                
+                driver_configs[name] = {
+                    "grid": grid,
+                    "q_delta": q_delta,
+                    "team": driver["team"],
+                    "number": driver["number"]
+                }
+    
+    # Si l'expander n'est pas ouvert, utiliser les valeurs par défaut
+    if not driver_configs:
+        for driver in GRID_2025:
+            name = driver["name"]
+            defaults = default_configs.get(name, {"grid": GRID_2025.index(driver) + 1, "q_delta": 1.0})
+            driver_configs[name] = {
+                "grid": defaults["grid"],
+                "q_delta": defaults["q_delta"],
+                "team": driver["team"],
+                "number": driver["number"]
+            }
     
     st.markdown("---")
     
-    # Prédiction
-    if st.button("🎯 Prédire le Podium", type="primary", use_container_width=True):
+    # Bouton de prédiction
+    if st.button("🎯 Calculer les Probabilités de Victoire", type="primary", use_container_width=True):
         
         if "driver_win" not in model_loader.models:
-            st.error("❌ Modèle de victoire non chargé. Placez model_driver_win.pkl dans models/")
+            st.error("❌ Modèle driver_win non chargé. Placez model_driver_win.pkl dans models/")
         else:
-            with st.spinner("Calcul des probabilités..."):
+            with st.spinner("Calcul des scores θ et probabilités Plackett-Luce..."):
                 
-                predictions = []
+                # Temps de référence pour la pole (en secondes)
+                base_pole_time = 80.0  # ~1:20.000
                 
-                for driver in GRID_2025:
-                    grid_pos = driver_grid.get(driver["name"], GRID_2025.index(driver) + 1)
+                # Préparer les features pour chaque pilote
+                drivers_features = []
+                
+                for name, config in driver_configs.items():
+                    # Calculer les temps de qualification basés sur le delta
+                    pole_time = base_pole_time
+                    driver_q_time = pole_time + config["q_delta"]
                     
-                    # Valeurs estimées
-                    base_q = 80 + (grid_pos - 1) * 0.2
+                    # Q1, Q2, Q3 (avec progression typique)
+                    q1_time = driver_q_time + 1.5  # Q1 environ 1.5s plus lent
+                    q2_time = driver_q_time + 0.7  # Q2 environ 0.7s plus lent
+                    q3_time = driver_q_time if config["grid"] <= 10 else 999  # Hors Q3 si grille > 10
+                    
+                    # Fastest lap time estimé (en millisecondes)
+                    fastest_lap_ms = driver_q_time * 1000
+                    
+                    # Avg lap time (un peu plus lent que le fastest)
+                    avg_lap_ms = fastest_lap_ms + 2500  # ~2.5s plus lent en moyenne
                     
                     try:
                         X = build_features_driver_win(
-                            grid=grid_pos,
-                            year=year,
+                            grid=config["grid"],
                             laps=laps,
-                            q1_sec=base_q + 1.2,
-                            q2_sec=base_q + 0.6,
-                            q3_sec=base_q if grid_pos <= 10 else 999,
-                            fastest_lap_time=base_q * 1000,
-                            avg_lap_ms=base_q * 1000 + 2500,
+                            q1_sec=q1_time,
+                            q2_sec=q2_time,
+                            q3_sec=q3_time,
+                            fastest_lap_time=fastest_lap_ms,
+                            avg_lap_ms=avg_lap_ms,
                             pit_stop_count=pit_stops,
                             avg_pit_duration_s=avg_pit_duration
                         )
                         
-                        win_prob = model_loader.predict_win_probability(X)[0]
-                        
-                        predictions.append({
-                            "Pilote": driver["name"],
-                            "Équipe": driver["team"],
-                            "Numéro": driver["number"],
-                            "Grille": grid_pos,
-                            "Probabilité": win_prob
-                        })
+                        drivers_features.append((name, X, config))
                         
                     except Exception as e:
-                        st.warning(f"Erreur pour {driver['name']}: {e}")
+                        st.warning(f"Erreur pour {name}: {e}")
                 
-                if predictions:
-                    df_pred = pd.DataFrame(predictions)
-                    df_pred = df_pred.sort_values("Probabilité", ascending=False).reset_index(drop=True)
-                    
-                    # PODIUM
-                    st.markdown("## 🏆 Podium Prédit")
-                    
-                    podium = df_pred.head(3)
-                    
-                    col1, col2, col3 = st.columns([1, 1.3, 1])
-                    
-                    # 2ème
-                    with col1:
-                        if len(podium) >= 2:
-                            d = podium.iloc[1]
-                            color = get_team_color(d['Équipe'])
-                            st.markdown(f"""
-                            <div class="podium-silver">
-                                <h2>🥈 2ème</h2>
-                                <h3>{d['Pilote']}</h3>
-                                <p style="color: {color}; font-weight: bold;">{d['Équipe']}</p>
-                                <p style="font-size: 1.5rem;">{d['Probabilité']*100:.1f}%</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    # 1er
-                    with col2:
-                        if len(podium) >= 1:
-                            d = podium.iloc[0]
-                            color = get_team_color(d['Équipe'])
-                            st.markdown(f"""
-                            <div class="podium-gold">
-                                <h1>🥇 VAINQUEUR</h1>
-                                <h2>{d['Pilote']}</h2>
-                                <p style="color: {color}; font-weight: bold;">{d['Équipe']}</p>
-                                <p style="font-size: 2rem;">{d['Probabilité']*100:.1f}%</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    # 3ème
-                    with col3:
-                        if len(podium) >= 3:
-                            d = podium.iloc[2]
-                            color = get_team_color(d['Équipe'])
-                            st.markdown(f"""
-                            <div class="podium-bronze">
-                                <h2>🥉 3ème</h2>
-                                <h3>{d['Pilote']}</h3>
-                                <p style="font-weight: bold;">{d['Équipe']}</p>
-                                <p style="font-size: 1.5rem;">{d['Probabilité']*100:.1f}%</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
-                    st.markdown("---")
-                    
-                    # Graphique
-                    st.subheader("📊 Probabilités de Victoire")
-                    
-                    df_sorted = df_pred.sort_values("Probabilité", ascending=True)
-                    
-                    color_map = {team: get_team_color(team) for team in df_sorted["Équipe"].unique()}
-                    
-                    fig = px.bar(
-                        df_sorted,
-                        x="Probabilité",
-                        y="Pilote",
-                        orientation="h",
-                        color="Équipe",
-                        color_discrete_map=color_map,
-                        title=f"Probabilités - {selected_race_name}",
-                    )
-                    
-                    fig.update_traces(texttemplate='%{x:.1%}', textposition='outside')
-                    fig.update_layout(
-                        height=650,
-                        yaxis={'categoryorder': 'total ascending'},
-                        xaxis_tickformat='.0%'
-                    )
-                    
-                    st.plotly_chart(fig, use_container_width=True)
-                    
-                    # Tableau
-                    st.subheader("📋 Classement Complet")
-                    
-                    df_display = df_pred.copy()
-                    df_display["Position"] = range(1, len(df_display) + 1)
-                    df_display["Probabilité"] = df_display["Probabilité"].apply(lambda x: f"{x*100:.2f}%")
-                    
-                    st.dataframe(
-                        df_display[["Position", "Pilote", "Équipe", "Numéro", "Grille", "Probabilité"]],
-                        use_container_width=True,
-                        hide_index=True
-                    )
+                # Calculer les probabilités avec Plackett-Luce
+                if drivers_features:
+                    try:
+                        # Calculer theta pour chaque pilote
+                        results = model_loader.predict_win_probabilities(
+                            [(name, X) for name, X, _ in drivers_features]
+                        )
+                        
+                        # Ajouter les infos supplémentaires
+                        for i, (name, X, config) in enumerate(drivers_features):
+                            results[i]["team"] = config["team"]
+                            results[i]["number"] = config["number"]
+                            results[i]["grid"] = config["grid"]
+                        
+                        # Créer le DataFrame et trier
+                        df_pred = pd.DataFrame(results)
+                        df_pred = df_pred.sort_values("win_probability", ascending=False).reset_index(drop=True)
+                        
+                        # PODIUM
+                        st.markdown("## 🏆 Podium Prédit")
+                        
+                        podium = df_pred.head(3)
+                        
+                        col1, col2, col3 = st.columns([1, 1.3, 1])
+                        
+                        # 2ème
+                        with col1:
+                            if len(podium) >= 2:
+                                d = podium.iloc[1]
+                                color = get_team_color(d['team'])
+                                st.markdown(f"""
+                                <div class="podium-silver">
+                                    <h2>🥈 2ème</h2>
+                                    <h3>{d['driver']}</h3>
+                                    <p style="color: {color}; font-weight: bold;">{d['team']}</p>
+                                    <p style="font-size: 1.5rem;">{d['win_probability']*100:.2f}%</p>
+                                    <p>θ = {d['theta']:.3f}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        # 1er
+                        with col2:
+                            if len(podium) >= 1:
+                                d = podium.iloc[0]
+                                color = get_team_color(d['team'])
+                                st.markdown(f"""
+                                <div class="podium-gold">
+                                    <h1>🥇 VAINQUEUR</h1>
+                                    <h2>{d['driver']}</h2>
+                                    <p style="color: {color}; font-weight: bold;">{d['team']}</p>
+                                    <p style="font-size: 2rem;">{d['win_probability']*100:.2f}%</p>
+                                    <p>θ = {d['theta']:.3f}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        # 3ème
+                        with col3:
+                            if len(podium) >= 3:
+                                d = podium.iloc[2]
+                                color = get_team_color(d['team'])
+                                st.markdown(f"""
+                                <div class="podium-bronze">
+                                    <h2>🥉 3ème</h2>
+                                    <h3>{d['driver']}</h3>
+                                    <p style="font-weight: bold;">{d['team']}</p>
+                                    <p style="font-size: 1.5rem;">{d['win_probability']*100:.2f}%</p>
+                                    <p>θ = {d['theta']:.3f}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        st.markdown("---")
+                        
+                        # Vérification : somme des probabilités
+                        total_prob = df_pred["win_probability"].sum()
+                        st.success(f"✅ Somme des probabilités : {total_prob*100:.2f}% (doit être ~100%)")
+                        
+                        st.markdown("---")
+                        
+                        # Graphique
+                        st.subheader("📊 Probabilités de Victoire (Plackett-Luce)")
+                        
+                        df_sorted = df_pred.sort_values("win_probability", ascending=True)
+                        
+                        color_map = {team: get_team_color(team) for team in df_sorted["team"].unique()}
+                        
+                        fig = px.bar(
+                            df_sorted,
+                            x="win_probability",
+                            y="driver",
+                            orientation="h",
+                            color="team",
+                            color_discrete_map=color_map,
+                            title=f"Probabilités de Victoire - {selected_race_name}",
+                            labels={"win_probability": "Probabilité", "driver": "Pilote", "team": "Équipe"},
+                            hover_data={"theta": ":.3f", "grid": True}
+                        )
+                        
+                        fig.update_traces(texttemplate='%{x:.1%}', textposition='outside')
+                        fig.update_layout(
+                            height=700,
+                            yaxis={'categoryorder': 'total ascending'},
+                            xaxis_tickformat='.0%'
+                        )
+                        
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # Graphique des scores theta
+                        st.subheader("📈 Scores de Force (θ)")
+                        
+                        fig_theta = px.bar(
+                            df_sorted,
+                            x="theta",
+                            y="driver",
+                            orientation="h",
+                            color="team",
+                            color_discrete_map=color_map,
+                            title="Score θ (Force du pilote) - Plus élevé = Plus fort",
+                            labels={"theta": "Score θ", "driver": "Pilote"}
+                        )
+                        
+                        fig_theta.update_traces(texttemplate='%{x:.2f}', textposition='outside')
+                        fig_theta.update_layout(
+                            height=700,
+                            yaxis={'categoryorder': 'total ascending'}
+                        )
+                        
+                        st.plotly_chart(fig_theta, use_container_width=True)
+                        
+                        # Tableau complet
+                        st.subheader("📋 Classement Complet")
+                        
+                        df_display = df_pred.copy()
+                        df_display["Position"] = range(1, len(df_display) + 1)
+                        df_display["Probabilité"] = df_display["win_probability"].apply(lambda x: f"{x*100:.2f}%")
+                        df_display["Score θ"] = df_display["theta"].apply(lambda x: f"{x:.3f}")
+                        
+                        df_display = df_display.rename(columns={
+                            "driver": "Pilote",
+                            "team": "Équipe",
+                            "number": "Numéro",
+                            "grid": "Grille"
+                        })
+                        
+                        st.dataframe(
+                            df_display[["Position", "Pilote", "Équipe", "Numéro", "Grille", "Score θ", "Probabilité"]],
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                    except Exception as e:
+                        st.error(f"Erreur lors du calcul: {e}")
+                        import traceback
+                        st.code(traceback.format_exc())
 
 # =============================================================================
 # TAB 2: TEMPS DE COURSE

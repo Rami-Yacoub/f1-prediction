@@ -340,31 +340,34 @@ FinalCombinedCleanFinal.csv
 
 Colonnes principales :
 
-raceId	Identifiant unique de la course
-driverId	Identifiant du pilote
-constructorId	Identifiant de l'équipe
-circuitId	Identifiant du circuit
-year	Année de la course
-number_driver	Numéro du pilote
-grid	Position de départ
-positionOrder	Position finale
-points	Points marqués
-milliseconds	Temps de course (ms)
-status	Statut (Finished, DNF, etc.)
-laps	Nombre de tours
-fastestLapTime	Meilleur tour
-avg_lap_ms	Temps moyen au tour
-pit_stop_count	Nombre de pit stops
-avg_pit_duration_s	Durée moyenne pit stop
-q1, q2, q3	Temps de qualification
-location, country	Lieu du circuit
+| Colonne | Description |
+|--------|-------------|
+| `raceId` | Identifiant unique de la course |
+| `driverId` | Identifiant du pilote |
+| `constructorId` | Identifiant de l'équipe |
+| `circuitId` | Identifiant du circuit |
+| `year` | Année de la course |
+| `number_driver` | Numéro du pilote |
+| `grid` | Position de départ |
+| `positionOrder` | Position finale |
+| `points` | Points marqués |
+| `milliseconds` | Temps de course (ms) |
+| `status` | Statut (Finished, DNF, etc.) |
+| `laps` | Nombre de tours |
+| `fastestLapTime` | Meilleur tour |
+| `avg_lap_ms` | Temps moyen au tour |
+| `pit_stop_count` | Nombre de pit stops |
+| `avg_pit_duration_s` | Durée moyenne d’un pit stop |
+| `q1, q2, q3` | Temps de qualification |
+| `location, country` | Lieu du circuit |
+
 
 Mappings inclus
 Le fichier data/data_loader.py contient les mappings :
 
-number_driver → Nom du pilote (ex: 1 → "Max Verstappen")
-constructorId → Nom de l'équipe (ex: 9 → "Red Bull")
-circuitId → Nom du circuit (ex: 6 → "Monte Carlo")
+- number_driver → Nom du pilote (ex: 1 → "Max Verstappen")
+- constructorId → Nom de l'équipe (ex: 9 → "Red Bull")
+- circuitId → Nom du circuit (ex: 6 → "Monte Carlo")
 
 ## 👥 Auteurs
 <table> <tr> <td align="center"> <a href="https://github.com/Rami-Yacoub"> <sub><b>Rami Yacoub</b></sub> </a> <br /> <a href="https://linkedin.com/in/rami-yacoub3">LinkedIn</a> </td> <td align="center"><a href="https://github.com/Onsguidara"><br /> <sub><b>Ons Guidara</b></sub> </a> <br /> <a href="https://www.linkedin.com/in/ons-guidara-3308a1219/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> </td> </tr> </table>

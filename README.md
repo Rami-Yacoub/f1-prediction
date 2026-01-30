@@ -44,7 +44,7 @@
 
 **F1 Prediction App** est une application web interactive qui utilise le Machine Learning pour prédire les résultats des courses de Formule 1.
 
-Ce projet a été développé en binôme dans le cadre de notre formation en **4ème année de cycle d'ingénieur spécialisé en Intelligence Artificielle**.
+Ce projet a été développé en binôme dans le cadre de notre formation en **2ème année de cycle d'ingénieur spécialisé en Intelligence Artificielle**.
 
 ### 🎯 Objectifs du projet
 
@@ -371,7 +371,7 @@ Le fichier data/data_loader.py contient les mappings :
 
 ## 👥 Auteurs
 <table> <tr> <td align="center"> <a href="https://github.com/Rami-Yacoub"> <sub><b>Rami Yacoub</b></sub> </a> <br /> <a href="https://linkedin.com/in/rami-yacoub3">LinkedIn</a> </td> <td align="center"><a href="https://github.com/Onsguidara"><br /> <sub><b>Ons Guidara</b></sub> </a> <br /> <a href="https://www.linkedin.com/in/ons-guidara-3308a1219/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> </td> </tr> </table>
-Formation : 4ème année Cycle Ingénieur - Spécialité Intelligence Artificielle
+Formation : 2ème année Cycle Ingénieur - Spécialité Intelligence Artificielle
 
 Année : 2025-2026
 

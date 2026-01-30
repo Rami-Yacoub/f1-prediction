@@ -261,7 +261,7 @@ f1-prediction/
     ├── models.py               # Chargement et prédiction
     └── features.py             # Préparation des features
 
-
+```
 ---
 
 ## 🚀 Installation Locale

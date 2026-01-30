@@ -231,34 +231,36 @@ Scatter plot avec les clusters colorés et les centres de chaque groupe.
 
 ## 📁 Structure du Projet
 
+```text
 f1-prediction/
 │
-├── 📄 app.py # Application Streamlit principale
-├── 📄 requirements.txt # Dépendances Python
-├── 📄 README.md # Documentation (ce fichier)
-├── 📄 LICENSE # Licence MIT
-├── 📄 .gitignore # Fichiers ignorés par Git
+├── 📄 app.py                   # Application Streamlit principale
+├── 📄 requirements.txt         # Dépendances Python
+├── 📄 README.md                # Documentation (ce fichier)
+├── 📄 LICENSE                  # Licence MIT
+├── 📄 .gitignore               # Fichiers ignorés par Git
 │
-├── 📁 .streamlit/ # Configuration Streamlit
-│ └── config.toml # Thème et paramètres
+├── 📁 .streamlit/              # Configuration Streamlit
+│   └── config.toml             # Thème et paramètres
 │
-├── 📁 models/ # Modèles ML sauvegardés
-│ ├── model_driver_win.pkl # Modèle probabilité de victoire
-│ ├── model_driver_time.pkl # Modèle temps de course
-│ ├── model_team_perf.pkl # Modèle performance équipe (K-Means)
-│ ├── scaler_driver_win.pkl # Scaler pour win probability
-│ ├── scaler_driver_time.pkl # Scaler pour temps de course
-│ └── scaler_team_perf.pkl # Scaler pour team performance
+├── 📁 models/                  # Modèles ML sauvegardés
+│   ├── model_driver_win.pkl    # Modèle probabilité de victoire
+│   ├── model_driver_time.pkl   # Modèle temps de course
+│   ├── model_team_perf.pkl     # Modèle performance équipe
+│   ├── scaler_driver_win.pkl   # Scaler win probability
+│   ├── scaler_driver_time.pkl  # Scaler temps de course
+│   └── scaler_team_perf.pkl    # Scaler team performance
 │
-├── 📁 data/ # Données et chargement
-│ ├── init.py
-│ ├── data_loader.py # Chargement CSV et mappings
-│ └── FinalCombinedCleanFinal.csv # Dataset principal
+├── 📁 data/                    # Données
+│   ├── __init__.py
+│   ├── data_loader.py          # Chargement CSV et mappings
+│   └── FinalCombinedCleanFinal.csv
 │
-└── 📁 src/ # Code source Python
-├── init.py
-├── models.py # Chargement et prédiction
-└── features.py # Préparation des features
+└── 📁 src/                     # Code source
+    ├── __init__.py
+    ├── models.py               # Chargement et prédiction
+    └── features.py             # Préparation des features
+
 
 ---
 
@@ -365,7 +367,7 @@ constructorId → Nom de l'équipe (ex: 9 → "Red Bull")
 circuitId → Nom du circuit (ex: 6 → "Monte Carlo")
 
 ## 👥 Auteurs
-<table> <tr> <td align="center"> <a href="https://github.com/Rami-Yacoub"> <sub><b>Rami Yacoub</b></sub> </a> <br /> <a href="https://linkedin.com/in/rami-yacoub3">LinkedIn</a> </td> <td align="center"> <a href="https://github.com/Onsguidara"><br /> <sub><b>Ons Guidara</b></sub> </a> <br /> <a href="https://www.linkedin.com/in/ons-guidara-3308a1219/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> </td> </tr> </table>
+<table> <tr> <td align="center"> <a href="https://github.com/Rami-Yacoub"> <sub><b>Rami Yacoub</b></sub> </a> <br /> <a href="https://linkedin.com/in/rami-yacoub3">LinkedIn</a> </td> <td align="center"><a href="https://github.com/Onsguidara"><br /> <sub><b>Ons Guidara</b></sub> </a> <br /> <a href="https://www.linkedin.com/in/ons-guidara-3308a1219/?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> </td> </tr> </table>
 Formation : 4ème année Cycle Ingénieur - Spécialité Intelligence Artificielle
 
 Année : 2025-2026
@@ -384,9 +386,10 @@ in the Software without restriction...
 ## ⭐ Support
 Si ce projet vous a été utile, n'hésitez pas à :
 
-⭐ Mettre une étoile sur le repository
-🐛 Signaler un bug via les Issues
-💡 Proposer une amélioration via une Pull Request
-📢 Partager avec votre réseau
+- ⭐ Mettre une étoile sur le repository
+- 🐛 Signaler un bug via les Issues
+- 💡 Proposer une amélioration via une Pull Request
+- 📢 Partager avec votre réseau
+
 
 <p align="center"> <img src="https://img.shields.io/badge/Made%20with-❤️-red.svg" alt="Made with love"> <img src="https://img.shields.io/badge/and-🏎️-black.svg" alt="and F1"> <img src="https://img.shields.io/badge/by-AI%20Students-blue.svg" alt="by AI Students"> </p><p align="center"> <a href="#-f1-prediction-app">⬆️ Retour en haut</a> </p>
